@@ -28,6 +28,7 @@ import datetime
 import random
 import re
 import sys
+import time
 
 __VERBOSE__ = 0
 SOURCE_APP_NAME = "Google2Piwik Exporter"
@@ -454,6 +455,7 @@ class GoogleFeedFetcher(object):
     Class used to retrieve data from Google.
     Contains methods to authenticate user.
     """
+    lastAPICallTime = [0.0]
 
     def __init__(self, table):
         self.client = gdata.analytics.client.AnalyticsClient(source=SOURCE_APP_NAME)
@@ -475,7 +477,13 @@ class GoogleFeedFetcher(object):
                             'metrics': metrics,
                             'max-results': '10000',
                             'key': config.GOOGLE_KEY})
+
+       elapsed = time.clock() - self.lastAPICallTime[0]
+       waitTime = 1.0 - elapsed
+       if waitTime > 0:
+               time.sleep(waitTime)
         self.feed = self.client.GetDataFeed(data_query)
+       self.lastAPICallTime[0] = time.clock()
 
     def FeedFetch(self, dimensions, metrics, day):
         data_query = gdata.analytics.client.DataFeedQuery({
@@ -486,7 +494,13 @@ class GoogleFeedFetcher(object):
                             'metrics': metrics,
                             'max-results': '10000',
                             'key': config.GOOGLE_KEY})
+
+       elapsed = time.clock() - self.lastAPICallTime[0]
+       waitTime = 1.0 - elapsed
+       if waitTime > 0:
+               time.sleep(waitTime)
         self.feed = self.client.GetDataFeed(data_query)
+       self.lastAPICallTime[0] = time.clock()
 
     def getUniqueVisitors(self, day):
         self.FeedFetch("", "ga:visitors", day)
